@@ -1,0 +1,49 @@
+{
+  "name": "EliteControl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": "index.js",
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "debounce": "^1.2.0",
+    "ffi-napi": "^3.1.0",
+    "log-timestamp": "^0.3.0",
+    "moment": "^2.29.1",
+    "ref-napi": "^3.0.1",
+    "ref-struct-napi": "^1.1.1",
+    "ref-union-napi": "^1.0.2",
+    "ref-wchar-napi": "^1.0.3",
+    "socket.io": "^2.1.0"
+  },
+  "devDependencies": {
+    "7zip-min": "^1.2.0",
+    "pkg": "github:kkoomen/pkg",
+    "rimraf": "^3.0.2"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "prepackage": "rimraf build",
+    "package": "pkg --compress GZip --output build/EliteControl.exe .",
+    "postpackage": "cd build && node ../dev/7zip-min-cli.js pack EliteControl.exe EliteControl.7z",
+    "upx": "cd build && node ../dev/upx.js EliteControl.exe EliteControlPacked.exe"
+  },
+  "pkg": {
+    "scripts": "index.js",
+    "assets": [
+      "./assets/**/*",
+      "./node_modules/ffi-napi/prebuilds/**/*",
+      "./node_modules/ffi-napi/node_modules/ref-napi/prebuilds/**/*",
+      "./node_modules/ref-napi/prebuilds/**/*",
+      "./node_modules/ref-struct-napi/node_modules/ref-napi/prebuilds/**/*",
+      "./node_modules/ref-union-napi/node_modules/ref-napi/prebuilds/**/*",
+      "./node_modules/blessed/**/*"
+    ],
+    "targets": [
+      "node12-win-x64"
+    ]
+  },
+  "author": "PureSpider",
+  "license": "ISC",
+  "private": true
+}

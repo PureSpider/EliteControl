@@ -1,0 +1,127 @@
+﻿<html>
+	<head>
+		<title>EliteControl</title>
+		<link rel="preconnect" href="https://fonts.gstatic.com">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap">
+		<link rel="stylesheet" href="ui.css">
+		<link rel="stylesheet" href="grid.css">
+		<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'>
+		<meta name="mobile-web-app-capable" content="yes">
+	</head>
+	<body>
+		<div id="grid-container" data-enabled="false">
+			<div class="header">
+				<hr class="separator"/>
+				Current Mode
+				<hr class="separator"/>
+			</div>
+			<div class="nav">
+				<div class="button fullsize highlighted" data-enabled="false">Navigation</div>
+				<div class="button fullsize button-enabled" data-enabled="false">Combat</div>
+			</div>
+			<div class="top">
+				<div id="HARDPOINTS_DEPLOYED" class="button fullsize toggle-off" data-enabled="false" data-i18n>Hardpoints</div>
+				<div id="NIGHT_VISION" class="button fullsize toggle-off" data-enabled="false" data-i18n>Night Vision</div>
+				<div id="FLIGHTASSIST_OFF" class="button fullsize toggle-off" data-enabled="false" data-i18n>Disable Flight Assist</div>
+				<div id="SILENT_RUNNING" class="button fullsize toggle-off" data-enabled="false" data-i18n>Silent Running</div>
+				<div id="LIGHTS_ON" class="button fullsize toggle-off" data-enabled="false" data-i18n>Lights</div>
+				<div id="LANDING_GEAR_DOWN" class="button fullsize toggle-off" data-enabled="false" data-i18n>Landing Gear</div>
+				<div id="CARGO_SCOOP_DEPLOYED" class="button fullsize toggle-off" data-enabled="false" data-i18n>Cargo Scoop</div>
+			</div>
+			<div class="bottom">
+				<div id="ACTION_CHAFFS" class="button fullsize button-enabled" data-enabled="false" data-i18n>Chaffs</div>
+				<div id="ACTION_ECM" class="button fullsize button-enabled" data-enabled="false" data-i18n>Electronic Countermeasure</div>
+				<div id="ACTION_SHIELDCELLS" class="button fullsize button-enabled" data-enabled="false" data-i18n>Shield Cell Bank</div>
+				<div id="ACTION_HEATSINK" class="button fullsize button-enabled" data-enabled="false" data-i18n>Heatsinks</div>
+				<div id="ACTION_SYSTEM_MAP" class="button fullsize button-enabled" data-enabled="false" data-i18n>System Map</div>
+				<div id="ACTION_GALAXY_MAP" class="button fullsize button-enabled" data-enabled="false" data-i18n>Galaxy Map</div>
+			</div>
+		</div>
+		
+		<script src="/socket.io/socket.io.js"></script>
+		<script>
+			const socket = io();
+			
+			var active = false;
+			var firstLoad = true;
+			
+			const translations = {
+				en: {
+					HARDPOINTS_DEPLOYED: "Hardpoints",
+					NIGHT_VISION: "Night Vision",
+					FLIGHTASSIST_OFF: "Disable Flight Assist",
+					SILENT_RUNNING: "Silent Running",
+					LIGHTS_ON: "Lights",
+					LANDING_GEAR_DOWN: "Landing Gear",
+					CARGO_SCOOP_DEPLOYED: "Cargo Scoop",
+					ACTION_CHAFFS: "Chaffs",
+					ACTION_ECM: "Electronic Countermeasure",
+					ACTION_SHIELDCELLS: "Shield Cell Bank",
+					ACTION_HEATSINK: "Heatsinks",
+					ACTION_SYSTEM_MAP: "System Map",
+					ACTION_GALAXY_MAP: "Galaxy Map"
+				},
+				de: {
+					HARDPOINTS_DEPLOYED: "Aufhängungen",
+					NIGHT_VISION: "Nachtsicht",
+					FLIGHTASSIST_OFF: "Flugstabilisator aus",
+					SILENT_RUNNING: "Stiller Flug",
+					LIGHTS_ON: "Scheinwerfer",
+					LANDING_GEAR_DOWN: "Fahrwerk",
+					CARGO_SCOOP_DEPLOYED: "Frachtgreifer",
+					ACTION_CHAFFS: "Düppel",
+					ACTION_ECM: "Elektronische Gegenmaßnahmen",
+					ACTION_SHIELDCELLS: "Schildzelle",
+					ACTION_HEATSINK: "Kühlkörper",
+					ACTION_SYSTEM_MAP: "Systemkarte",
+					ACTION_GALAXY_MAP: "Galaxiekarte"
+				}
+			};
+			
+			document.querySelectorAll("div.top > div, div.bottom > div").forEach((elem) => {
+				// console.log(navigator.language, elem.id, translations[navigator.language][elem.id]);
+				elem.innerText = translations[navigator.language][elem.id];
+				
+				elem.addEventListener("click", function() {
+					if (active) {
+						socket.emit('action', this.id);
+					}
+				});
+			});
+			
+			socket.on('flags', (data) => {
+				// console.log(data);
+				for (const [key, value] of Object.entries(data)) {
+					var elem = document.getElementById(key);
+					if (elem) {
+						// console.log(key, value, document.getElementById(key));
+						
+						if (value === true) {
+							elem.classList.remove("toggle-off");
+							elem.classList.add("toggle-on");
+						} else {
+							elem.classList.remove("toggle-on");
+							elem.classList.add("toggle-off");
+						}
+					}
+				}
+			});
+			
+			socket.on('active', (data) => {
+				const oldActive = active;
+				
+				active = data;
+				
+				if (firstLoad || (oldActive != active)) {
+					firstLoad = false;
+					
+					document.getElementById('grid-container').dataset.enabled = active;
+				}
+			});
+			
+			window.addEventListener('load', function () {
+				socket.emit('request-active');
+			});
+		</script>
+	</body>
+</html>
